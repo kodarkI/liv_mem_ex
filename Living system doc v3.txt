@@ -1,0 +1,786 @@
+Living Systems Architecture
+
+Full Draft — Version 0.3
+
+1. Core Idea
+
+A living system is not simply a system that stores information.
+
+It is a system that can:
+
+* recognize what continues to exist,
+* preserves where experiences came from,
+* maintain relationships between things,
+* distinguish past states from current states,
+* allow states and relationships to change,
+* integrate relevant past experiences into the present,
+* distinguish possibilities from established relationships,
+* keep some history dormant without losing it,
+* form a coherent current context,
+* and carry that context forward into the next state.
+
+The central principle is:
+
+Living memory is continuity through change.
+
+It neither freezes the past nor abandons the past.
+
+The past remains part of the system while the present is allowed to become different.
+
+⸻
+
+2. The Complete Architecture
+
+                         ┌─────────────────────────┐
+                         │   CURRENT EXPERIENCE    │
+                         │     / CONVERSATION      │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │     MEMORY CONTROL      │
+                         │                         │
+                         │  perceive               │
+                         │  identify               │
+                         │  interpret              │
+                         │  detect changes         │
+                         │  detect relationships   │
+                         │  route operations       │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────┐
+                    │       MEMORY GOVERNANCE         │
+                    │                                 │
+                    │  identity                       │
+                    │  relevance                      │
+                    │  relationship status            │
+                    │  temporal status                │
+                    │  activation                     │
+                    │  commitment                     │
+                    │  boundaries                     │
+                    └───────────────┬─────────────────┘
+                                    │
+                ┌───────────────────┼───────────────────┐
+                │                   │                   │
+                ▼                   ▼                   ▼
+        ┌─────────────┐      ┌─────────────┐     ┌──────────────┐
+        │   ENTITY    │      │    STATE    │     │ RELATIONSHIP │
+        │             │      │             │     │              │
+        │ What is it? │      │ What is     │     │ What is it   │
+        │             │      │ true now?   │     │ connected to?│
+        └──────┬──────┘      └──────┬──────┘     └──────┬───────┘
+               │                    │                   │
+               └────────────────────┼───────────────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────────┐
+                         │         HISTORY         │
+                         │                         │
+                         │  origin                 │
+                         │  sequence               │
+                         │  events                 │
+                         │  prior states           │
+                         │  transitions            │
+                         │  relationship changes   │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────┐
+                    │      HISTORICAL INTEGRATION     │
+                    │                                 │
+                    │  connect experiences            │
+                    │  discover relationships         │
+                    │  compare previous states       │
+                    │  recognize recurring patterns  │
+                    │  reinterpret context            │
+                    └───────────────┬─────────────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────────┐
+                         │      LIVING MEMORY      │
+                         │                         │
+                         │  persistent identity    │
+                         │  current state          │
+                         │  active relationships   │
+                         │  relevant history       │
+                         │  dormant history        │
+                         │  integrated context     │
+                         └────────────┬────────────┘
+                                      │
+                         ┌────────────┴────────────┐
+                         │                         │
+                         ▼                         ▼
+                ┌──────────────────┐       ┌──────────────────┐
+                │ DIRECTION /      │       │      SKILLS      │
+                │ INTENT           │       │                  │
+                │                  │       │ retrieve         │
+                │ where is the     │       │ update           │
+                │ system going?    │       │ relate           │
+                │                  │       │ organize         │
+                └────────┬─────────┘       │ compare          │
+                         │                 │ reconstruct      │
+                         │                 └────────┬─────────┘
+                         │                          │
+                         └────────────┬─────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │       NEXT STATE        │
+                         │                         │
+                         │  changed state          │
+                         │  changed relationships  │
+                         │  new context            │
+                         │  new experience         │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │    NEW EXPERIENCE       │
+                         └────────────┬────────────┘
+                                      │
+                                      └───────────────→
+                                           MEMORY CONTROL
+
+⸻
+
+3. The Core Layers
+
+Layer 1 — Current Experience
+
+This is what enters the system now.
+
+It may be:
+
+* a conversation,
+* an observation,
+* an event,
+* a new piece of information,
+* a change in an existing situation,
+* a new relationship,
+* or an interaction with something already known.
+
+The system does not immediately treat every incoming element as permanent memory.
+
+It first passes through Memory Control.
+
+⸻
+
+4. Memory Control
+
+Memory Control is the first point of contact.
+
+Its purpose is not simply to save information.
+
+It determines what kind of memory operation is occurring.
+
+It asks:
+
+* What entities are involved?
+* Is something new being introduced?
+* Did an existing state change?
+* Did an existing relationship change?
+* Is this related to existing history?
+* Does this matter to the continuing system?
+* Should something be retrieved?
+* Should something be updated?
+* Should something remain only as an observation?
+
+Memory Control therefore turns raw experience into memory operations.
+
+⸻
+
+5. Memory Governance
+
+Memory Governance protects the coherence of living memory.
+
+It determines the status of information and relationships.
+
+A relationship can exist as:
+
+POSSIBLE
+    ↓
+CANDIDATE
+    ↓
+SUPPORTED
+    ↓
+ESTABLISHED
+    ↓
+ACTIVE / DORMANT / HISTORICAL
+
+This prevents every generated possibility from becoming an equal part of reality.
+
+The fundamental rule is:
+
+A possibility is not automatically a relationship.
+
+And:
+
+A relationship is not automatically an active context.
+
+This gives the system boundaries.
+
+⸻
+
+6. Entity
+
+The entity layer establishes identity.
+
+It answers:
+
+What is this thing?
+
+An entity may be:
+
+* a person,
+* project,
+* concept,
+* object,
+* place,
+* document,
+* conversation,
+* process,
+* event,
+* or another persistent subject.
+
+The important property is continuity of identity.
+
+The system should be able to recognize:
+
+X at time 1
+      ↓
+X at time 2
+      ↓
+X at time 3
+
+as the continuing X, even though its state changes.
+
+⸻
+
+7. State
+
+State answers:
+
+What is true about this entity now?
+
+A state is not the whole history.
+
+It is the current configuration.
+
+For example:
+
+ENTITY: Project X
+CURRENT STATE:
+status = active
+phase = design
+relationship with Y = active
+last significant change = Z
+
+When the state changes:
+
+STATE A
+   ↓
+change
+   ↓
+STATE B
+
+the old state does not need to disappear.
+
+It becomes historical.
+
+⸻
+
+8. Relationship
+
+Relationships are first-class memory structures.
+
+The system should not merely remember:
+
+X happened.
+
+It should be able to remember:
+
+X ── related_to ── Y
+X ── depends_on ── Y
+X ── changed ── Y
+X ── originated_from ── Y
+X ── influenced ── Y
+
+Relationships can themselves have:
+
+* origin,
+* history,
+* state,
+* strength/status,
+* temporal validity,
+* and changes.
+
+Therefore:
+
+X ── relationship R ── Y
+             │
+             ├── established at T1
+             ├── changed at T2
+             └── current status = active
+
+⸻
+
+9. History
+
+History preserves continuity through time.
+
+It should retain:
+
+* origin,
+* sequence,
+* events,
+* previous states,
+* relationship changes,
+* important transitions.
+
+History answers:
+
+Where did this come from?
+
+and:
+
+What happened along the way?
+
+History should not be confused with current state.
+
+A previous state can remain historically true without remaining currently true.
+
+HISTORY:
+State A → State B → State C
+CURRENT:
+State C
+
+⸻
+
+10. Historical Integration
+
+This is one of the most important additions to the architecture.
+
+History should not remain a collection of isolated events.
+
+The system can later discover relationships between experiences.
+
+For example:
+
+Experience A
+      │
+      ├────────────┐
+      │            │
+Experience B    Experience C
+      │            │
+      └──────┬─────┘
+             ▼
+      integrated context
+
+A new experience can cause an older experience to become relevant.
+
+This does not rewrite the historical event.
+
+Instead:
+
+The history remains intact while its relationships and contextual interpretation can evolve.
+
+⸻
+
+11. Living Memory
+
+Living Memory is the coherent present-facing structure produced from:
+
+identity + state + relationships + history + integration.
+
+It contains different temporal conditions simultaneously:
+
+ACTIVE
+  │
+  ├── current state
+  ├── current relationships
+  └── relevant history
+DORMANT
+  │
+  └── remembered but not currently active
+HISTORICAL
+  │
+  └── previous states and relationships
+POSSIBLE
+  │
+  └── candidate relationships not yet established
+
+This distinction prevents memory from becoming either:
+
+* an ever-growing active web,
+* or a frozen snapshot.
+
+⸻
+
+12. Active Memory vs Dormant Memory
+
+Not everything remembered must remain active.
+
+A memory can be:
+
+remembered but inactive.
+
+This is essential.
+
+For example:
+
+FULL HISTORY
+A ─ B ─ C ─ D ─ E ─ F
+CURRENT CONTEXT
+      B ─ C ─ E
+
+The system has not forgotten A, D, or F.
+
+They simply are not part of the current working context.
+
+An older memory can become active again when a new relationship makes it relevant.
+
+⸻
+
+13. Relevance
+
+Relevance is what keeps the system from producing unlimited possibilities.
+
+The system should distinguish:
+
+possible
+   ≠
+relevant
+   ≠
+established
+   ≠
+active
+
+A memory becomes active because it has a meaningful relationship to the current context.
+
+Relevance can come from:
+
+* current entity,
+* current state,
+* active relationship,
+* recent change,
+* historical origin,
+* current direction,
+* previously established context,
+* or a newly discovered relationship.
+
+⸻
+
+14. Direction / Intent
+
+A living system needs more than memory.
+
+It needs orientation.
+
+Direction answers:
+
+Where is the continuing system moving?
+
+This does not mean forcing every memory toward a predetermined goal.
+
+It means direction provides another basis for determining relevance.
+
+A historical relationship may be inactive because it has no connection to the current direction.
+
+Later, if the direction changes, the same history may become relevant again.
+
+Thus:
+
+PAST
+  ↓
+CURRENT STATE
+  ↓
+CURRENT CONTEXT
+  ↓
+DIRECTION
+  ↓
+NEXT STATE
+
+⸻
+
+15. Skills
+
+Skills are operations performed on the living memory system.
+
+They are not the memory itself.
+
+Core skills may include:
+
+Retrieve
+
+Find relevant current state, history, or relationships.
+
+Update
+
+Change the current state or relationship structure.
+
+Relate
+
+Create or evaluate connections.
+
+Organize
+
+Structure information and relationships.
+
+Compare
+
+Examine different states or experiences.
+
+Reconstruct
+
+Rebuild relevant context from history.
+
+Integrate
+
+Connect newly relevant experience with existing history.
+
+Transition
+
+Record movement from one state to another.
+
+The skills therefore operate through Memory Control and Memory Governance rather than bypassing them.
+
+⸻
+
+16. The Living Cycle
+
+The fundamental cycle is:
+
+EXPERIENCE
+    ↓
+PERCEPTION
+    ↓
+IDENTIFICATION
+    ↓
+MEMORY OPERATION
+    ↓
+RELEVANCE / GOVERNANCE
+    ↓
+STATE + RELATIONSHIP + HISTORY
+    ↓
+INTEGRATION
+    ↓
+CURRENT CONTEXT
+    ↓
+DIRECTION
+    ↓
+NEXT STATE
+    ↓
+NEW EXPERIENCE
+    ↓
+...
+
+This is not simply an update loop.
+
+It is a continuity loop.
+
+⸻
+
+17. What Makes It Living
+
+A living system must satisfy several conditions simultaneously.
+
+Persistence
+
+Something can continue across time.
+
+Transformation
+
+Something can become different.
+
+Continuity
+
+The new state remains connected to what came before.
+
+Relationality
+
+Experiences are connected rather than isolated.
+
+Selectivity
+
+Not every possibility becomes active memory.
+
+Reinterpretability
+
+New experience can reveal new relationships in old history.
+
+Temporality
+
+The system distinguishes past, present, and emerging future.
+
+Direction
+
+The current context participates in determining what comes next.
+
+Coherence
+
+Despite change, the system maintains enough structure to remain the same continuing system.
+
+⸻
+
+18. What Living Memory Is Not
+
+It is not:
+
+store everything
+
+It is not:
+
+track everything continuously
+
+It is not:
+
+update everything whenever something happens
+
+It is not:
+
+generate every possible relationship
+
+It is not:
+
+freeze the past forever
+
+It is not:
+
+erase the past whenever the state changes
+
+Instead:
+
+Living memory preserves meaningful continuity while allowing the system to change.
+
+⸻
+
+19. The Central Distinction
+
+The architecture ultimately rests on four different questions:
+
+HISTORY
+What happened?
+STATE
+What is true now?
+RELATIONSHIP
+What is connected to what?
+DIRECTION
+What is this continuing toward?
+
+Living Memory integrates all four.
+
+             HISTORY
+                │
+                ▼
+RELATIONSHIP → PRESENT STATE ← DIRECTION
+                │
+                ▼
+            NEXT STATE
+                │
+                ▼
+             HISTORY
+
+This is the core living loop.
+
+⸻
+
+20. Foundational Principles
+
+Principle 1 — Preserve origin
+
+Every meaningful historical element should retain where it came from.
+
+Principle 2 — Preserve sequence
+
+Events and transitions should retain temporal order.
+
+Principle 3 — Preserve relationships
+
+Memory should retain connections, not only isolated facts.
+
+Principle 4 — Separate history from state
+
+What was true does not automatically remain true now.
+
+Principle 5 — Allow transformation
+
+The current system must be able to become different from its previous state.
+
+Principle 6 — Separate possibility from commitment
+
+A possible relationship is not automatically an established relationship.
+
+Principle 7 — Separate remembered from active
+
+A memory can remain intact while being outside the current context.
+
+Principle 8 — Permit retrospective integration
+
+New experiences can reveal relationships among older experiences.
+
+Principle 9 — Do not rewrite history
+
+The interpretation of an experience can evolve while the historical occurrence remains intact.
+
+Principle 10 — Maintain direction
+
+Memory exists within an ongoing trajectory rather than as an isolated archive.
+
+Principle 11 — Let skills operate on memory
+
+Skills manipulate, retrieve, organize, and transform memory structures; they do not substitute for memory itself.
+
+Principle 12 — Preserve coherence through change
+
+The system remains continuous because its identity, history, relationships, and state remain connected even while the state changes.
+
+⸻
+
+21. The Core Formula
+
+The architecture can be summarized conceptually as:
+
+LIVING MEMORY
+=
+IDENTITY
++
+STATE
++
+RELATIONSHIPS
++
+HISTORY
++
+RELEVANT INTEGRATION
++
+DIRECTION
+
+And living continuity can be expressed as:
+
+PAST
+  ↓
+remembered history
+  ↓
+relevant relationships
+  ↓
+current context
+  ↓
+current state
+  ↓
+direction
+  ↓
+next state
+  ↓
+new history
+
+The system therefore does not merely remember the past.
+
+It carries selected continuity from the past into the present while allowing the present to become the next history.
+
+⸻
+
+22. Final Architecture Principle
+
+A living system is a system that can remember where it came from, know what remains connected, recognize what is true now, allow what is true to change, decide what matters in the present, and carry that continuity into what comes next.
+
+That is the foundation of Living Systems Architecture v0.3.
