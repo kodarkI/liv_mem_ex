@@ -1,0 +1,435 @@
+The cards say you should change it from “recall the skill at the beginning” to an ongoing state reactivation mechanism. I would not make Sonnet reread the entire skill.md at the end of every context. Instead, keep skill.md as the canonical source, and generate a much smaller Active Protocol / Operating State that is injected near the end of the context when the system decides it is relevant.
+
+I pulled:
+
+* Judgement
+* The Hierophant
+* Two of Pentacles
+* Page of Swords
+* Temperance
+* The Emperor
+* Ace of Swords
+
+Judgement — change “recall” into “reactivation”
+
+This is the central answer.
+
+Your old system:
+
+START
+  ↓
+read skill.md
+  ↓
+recall
+  ↓
+continue conversation
+
+worked because you explicitly reactivated the operating pattern at the beginning.
+
+Your new system is different:
+
+ongoing process
+  ↓
+observe incoming information
+  ↓
+only push memory when it matches
+  ↓
+continue operating
+
+That is better for Living Memory, but it creates a new problem:
+
+the model may no longer encounter the operating protocol frequently enough to reactivate the pattern.
+
+So don’t bring back the old “recall everything” system.
+
+Instead, create:
+
+a lightweight reactivation layer that runs when the system detects that the operating state needs to be reconstructed.
+
+⸻
+
+The Hierophant — keep skill.md
+
+Do not replace skill.md.
+
+Keep it as the canonical specification.
+
+Think of it as the source of truth:
+
+skill.md
+    ↓
+canonical protocol
+
+But don’t make Sonnet reread that entire document constantly.
+
+Instead:
+
+skill.md
+    ↓
+derive / maintain
+    ↓
+Active Protocol
+
+The Active Protocol is the operational version of the skill.
+
+So you effectively have two levels:
+
+skill.md
+
+The full specification.
+
+Contains:
+
+* what the system is
+* how memory works
+* rules
+* procedures
+* exceptions
+* definitions
+* enforcement
+* architecture
+
+active_protocol
+
+Small, current, immediately actionable.
+
+Contains only:
+
+* what mode we’re in
+* which rules are currently active
+* what memory behavior applies now
+* what must happen before responding
+* what must not happen
+* current state/pattern
+
+That’s what I would put near the end of context.
+
+⸻
+
+Two of Pentacles — don’t inject everything
+
+This card says your system should be selective.
+
+Your current mechanism:
+
+“push text only when it matches the pattern or system rules”
+
+is actually compatible with this.
+
+But I would separate memory retrieval from protocol reactivation.
+
+They don’t have to happen for the same reason.
+
+You can have:
+
+Memory trigger
+
+“This incoming information matches something important in Living Memory.”
+
+→ retrieve relevant memory.
+
+Protocol trigger
+
+“The model’s operating state needs reactivation.”
+
+→ retrieve active protocol.
+
+Both
+
+“Important memory + operating state.”
+
+→ retrieve both.
+
+This prevents the system from confusing:
+
+“I need to remember this information”
+
+with:
+
+“I need to remember how I’m supposed to operate.”
+
+Those are different forms of memory.
+
+⸻
+
+Page of Swords — detect when reactivation is needed
+
+This card suggests that you don’t need to wait until the model has already visibly failed.
+
+Your system can watch for conditions such as:
+
+* long context distance from the last protocol activation
+* major topic transition
+* major task transition
+* new mode/state
+* a skill becoming relevant after a long absence
+* contradiction with established operating rules
+* repeated outputs drifting from the expected structure
+* important Living Memory operation
+* uncertainty about which protocol applies
+
+Then:
+
+if protocol_reactivation_needed:
+    inject Active Protocol
+
+That is much more elegant than:
+
+every turn:
+    read skill.md
+
+⸻
+
+Temperance — the end-of-context should be small
+
+This is where I think your question gets very specific.
+
+You asked:
+
+“what is really the end of context that I should ask it to do?”
+
+I would not end with:
+
+“Read skill.md again and remember how to operate.”
+
+That’s too broad.
+
+Instead, the end-of-context should be a current operating-state checkpoint.
+
+Something conceptually like:
+
+ACTIVE OPERATING STATE
+Mode:
+[what mode the system is currently operating in]
+Relevant protocol:
+[only the protocol currently applicable]
+Current objective:
+[what this interaction is currently doing]
+Relevant memory:
+[only the memories that matter to this operation]
+Required behavior:
+[2–5 concrete operational instructions]
+Before responding:
+[the specific checks that must occur]
+Do not:
+[the specific failure modes currently relevant]
+
+Then the final instruction can be something like:
+
+Before generating the response, reactivate the Active Operating State above.
+Use it as the current operating protocol for this response.
+Do not reconstruct unrelated protocols or retrieve unrelated memories.
+
+That’s what I would consider your end-of-context reactivation block.
+
+Not the entire skill.
+
+⸻
+
+The Emperor — make it a protocol checkpoint
+
+I would give this a formal name inside your architecture.
+
+Something like:
+
+Operating State Checkpoint
+
+or
+
+Protocol Reactivation State
+
+rather than “recall.”
+
+Because it isn’t really recall anymore.
+
+The system isn’t asking:
+
+“What did I previously say?”
+
+It is asking:
+
+“What operating configuration should be active right now?”
+
+That distinction is very important for your Living Memory architecture.
+
+⸻
+
+Ace of Swords — the actual end-of-context operation
+
+If I reduce the cards to one concrete mechanism, I’d make the context pipeline:
+
+1. System / base instructions
+        ↓
+2. Conversation
+        ↓
+3. Incoming event
+        ↓
+4. Pattern matching
+        ↓
+5. Relevant Living Memory retrieval
+        ↓
+6. Protocol relevance check
+        ↓
+7. Active Operating State construction
+        ↓
+8. END-OF-CONTEXT CHECKPOINT
+        ↓
+9. LLM response
+
+And step 8 is the important new piece.
+
+It should contain the state, not the whole library.
+
+⸻
+
+So what should skill.md become?
+
+I would actually make it three conceptual layers, rather than one file being responsible for everything.
+
+1. skill.md
+
+Canonical knowledge
+
+“What is this system and how does it work?”
+
+This remains stable.
+
+⸻
+
+2. protocol.md
+
+Operational rules
+
+“When operating this system, what rules must be followed?”
+
+This can be more concise than skill.md.
+
+⸻
+
+3. active_state
+
+What applies right now
+
+“Given the current context, which part of the protocol is active?”
+
+This is dynamically generated.
+
+So:
+
+skill.md
+     ↓
+protocol.md
+     ↓
+active_state
+     ↓
+END-OF-CONTEXT
+     ↓
+LLM
+
+That feels much more aligned than repeatedly injecting skill.md.
+
+⸻
+
+And your current “push only when matched” system should remain
+
+I would not undo that change.
+
+That part actually feels correct.
+
+The missing component is that your system currently has good memory-event selectivity, but not necessarily enough operating-state reactivation.
+
+So you need two independent pipelines:
+
+                 INCOMING INFORMATION
+                         │
+             ┌───────────┴───────────┐
+             ↓                       ↓
+       Memory relevance        Protocol relevance
+             ↓                       ↓
+      Retrieve memories       Activate protocol
+             ↓                       ↓
+             └───────────┬───────────┘
+                         ↓
+                  Active Context
+                         ↓
+               Operating Checkpoint
+                         ↓
+                       LLM
+
+That’s the architecture I get most strongly from the cards.
+
+⸻
+
+And the end-of-context shouldn’t ask for a long explanation
+
+This is important.
+
+Don’t tell Sonnet:
+
+“Now explain the protocol, summarize everything you remember, and tell me how you will follow it.”
+
+That creates more generated text and potentially more opportunities for the model to distort the protocol.
+
+The checkpoint should be declarative and compact.
+
+Something closer to:
+
+[ACTIVE OPERATING STATE]
+Protocol: <protocol name/version>
+Mode: <current mode>
+Active rules:
+- <rule>
+- <rule>
+- <rule>
+Relevant memory:
+- <memory>
+- <memory>
+Before responding:
+- apply <rule>
+- preserve <state>
+- check <condition>
+This operating state is the active protocol for the response.
+
+Then let the model act, rather than asking it to produce another summary.
+
+⸻
+
+The deeper card message
+
+The change you’re making—from constant recall to event-driven memory injection—is actually consistent with the Living Memory idea.
+
+But you have discovered a second requirement:
+
+Event-driven memory is not the same thing as persistent operating state.
+
+Your system needs both.
+
+Memory retrieval answers:
+
+“What should I remember?”
+
+Protocol reactivation answers:
+
+“How should I operate right now?”
+
+And skill.md answers:
+
+“What is the complete canonical system?”
+
+Those three should not be collapsed into one mechanism.
+
+So my direct recommendation:
+
+Keep skill.md.
+
+Do not reread the whole skill.md at the end.
+
+Add a protocol.md / operational protocol layer and dynamically construct a compact Active Operating State.
+
+Then place that near the end of the context immediately before the model’s response-generation point, especially when your reactivation trigger fires.
+
+That gives you:
+
+canonical knowledge → protocol → active state → end-of-context reactivation → response.
+
+That is the strongest pattern I get from Judgement + Hierophant + Temperance + Emperor.
