@@ -1,0 +1,514 @@
+Living Memory Recall Processing
+
+1. Core Principle
+
+Living memory is not simply a persistent database that the LLM may optionally query.
+
+It is a continuous memory layer that determines whether the current experience connects to previously accumulated experience and, when a meaningful connection exists, activates the relevant part of that history for the current interaction.
+
+The central principle is:
+
+Every incoming experience should be evaluated for continuity with the living memory, but deep memory retrieval should occur only when meaningful continuity is detected.
+
+Therefore:
+
+Every prompt → memory relevance evaluation
+
+does not mean:
+
+Every prompt → full memory retrieval
+
+⸻
+
+2. Two Different Recall Modes
+
+The system should distinguish between:
+
+A. Initial / Reconnection Recall
+
+The first prompt in a new chat, session, agent context, or execution context.
+
+B. Ongoing Recall
+
+A subsequent prompt inside an already-connected interaction.
+
+These two modes should not use exactly the same recall behavior.
+
+⸻
+
+3. Initial / Reconnection Recall
+
+A new session must not begin with:
+
+“No local match → no recall.”
+
+That would make every new session behave as if the living history does not exist.
+
+Instead:
+
+A new session begins with a reconnection process.
+
+The purpose is to discover which parts of the existing living memory are relevant to the new experience.
+
+The system should search across available memory sources, which may include:
+
+* previous chats
+* previous sessions
+* other agents
+* previous tasks
+* persistent memories
+* relationship histories
+* ongoing projects
+* goals and direction
+* unresolved threads
+* prior decisions
+* important experiences
+* cross-context patterns
+
+The first prompt therefore receives a broader recall opportunity than an ordinary ongoing prompt.
+
+The system should establish:
+
+“Where does this new experience belong within the existing living world?”
+
+Only after this reconnection stage should normal relevance-gated recall begin.
+
+⸻
+
+4. Ongoing Recall
+
+For every subsequent prompt:
+
+Current experience
+↓
+Pattern recognition
+↓
+Memory candidate detection
+↓
+Relevance evaluation
+↓
+Recall depth decision
+↓
+Memory retrieval
+↓
+LLM receives relevant living context
+
+The LLM should not be solely responsible for deciding whether memory needs to be called.
+
+The memory architecture should perform the first-stage evaluation automatically.
+
+⸻
+
+5. Pattern Recognition Is the Recall Gate
+
+The relevance gate should be understood as a pattern-recognition mechanism, not merely a keyword matcher.
+
+The system asks whether the current experience connects to existing memory through one or more dimensions.
+
+Entity continuity
+
+Does the current experience involve an entity already represented in memory?
+
+Examples:
+
+* person
+* project
+* organization
+* object
+* system
+* topic
+* ongoing task
+
+Relationship continuity
+
+Does the current experience involve an existing relationship?
+
+The surface subject may change while the relationship remains continuous.
+
+Experience continuity
+
+Does the current experience continue, repeat, extend, or transform an earlier experience?
+
+Semantic / conceptual continuity
+
+Does the current experience express a concept or situation previously encountered even when the wording is completely different?
+
+Cross-context continuity
+
+Can an apparently unrelated past experience illuminate or connect to the current experience?
+
+Temporal continuity
+
+Is the current event a continuation of something that happened earlier, even when significant time has passed?
+
+Direction continuity
+
+Does the current experience relate to an existing:
+
+* goal
+* intention
+* plan
+* trajectory
+* decision
+* unfinished task
+* future direction
+
+State-change continuity
+
+Does the current experience update, contradict, confirm, or transform something previously remembered?
+
+⸻
+
+6. Candidate Matching Is Only the First Layer
+
+A lightweight matching stage can produce candidate memories.
+
+For example:
+
+0 candidates
+3 candidates
+20 candidates
+
+But candidate count must not equal relevance.
+
+One extremely strong conceptual connection can be more important than many weak lexical matches.
+
+Therefore the process should be:
+
+Candidate generation
+→ candidate scoring
+→ relationship/pattern evaluation
+→ memory activation decision
+
+The system should distinguish:
+
+similarity
+
+from:
+
+meaningful continuity
+
+⸻
+
+7. Recall Depth
+
+Recall should not be binary.
+
+Instead of:
+
+recall / don’t recall
+
+use graduated recall.
+
+Level 0 — No meaningful connection
+
+No relevant memory is activated.
+
+Level 1 — Weak connection
+
+Retrieve minimal contextual information.
+
+Level 2 — Relevant connection
+
+Retrieve the directly connected memories and relationships.
+
+Level 3 — Strong continuity
+
+Retrieve:
+
+* relevant history
+* connected experiences
+* relationships
+* previous decisions
+* current direction
+* related cross-context memories
+
+Level 4 — Memory-critical
+
+Perform deeper reconstruction of the relevant living context before generating the response.
+
+This prevents both extremes:
+
+recalling everything every time
+
+and:
+
+failing to recall important history because the LLM did not decide to call the tool.
+
+⸻
+
+8. Truth Is Separate From Persistence
+
+A memory being persistent does not make it true.
+
+Living memory should preserve distinctions between:
+
+* observed experience
+* explicit statement
+* inferred information
+* interpretation
+* uncertainty
+* contradiction
+* later correction
+
+When recalling memory, the system should therefore preserve the epistemic state of the memory rather than flattening everything into one unquestioned fact.
+
+This allows:
+
+persistent memory
+
+and:
+
+truth-aware memory
+
+to remain separate dimensions.
+
+⸻
+
+9. Memory Should Connect Old and New
+
+The purpose of recall is not merely to reproduce old messages.
+
+The system should establish relationships between:
+
+old experience ↔ current experience
+
+including:
+
+old relationship ↔ current relationship
+
+old project ↔ current project
+
+old decision ↔ current decision
+
+old goal ↔ current direction
+
+old unrelated experience ↔ current experience
+
+when a meaningful underlying pattern exists.
+
+The output of recall should therefore be understood as activated context, rather than merely retrieved documents.
+
+⸻
+
+10. Direction Is Part of Living Memory
+
+Memory should maintain not only what happened but also where an ongoing thread is going.
+
+Relevant directional information includes:
+
+* current goals
+* intended outcomes
+* unfinished work
+* commitments
+* trajectory
+* previous decisions
+* changes in direction
+* future plans
+
+When evaluating a prompt, the system should therefore ask:
+
+“Does this experience connect to something the living system is moving toward?”
+
+A memory can be relevant because it explains the past.
+
+It can also be relevant because it informs the future.
+
+⸻
+
+11. Initial Session Reconnection Rule
+
+The first prompt of a new session should have a special rule:
+
+Do not interpret absence of a local match as absence of relevant memory.
+
+Instead:
+
+New session detected
+↓
+Broader cross-session / cross-agent / persistent-memory search
+↓
+Pattern recognition
+↓
+Relevant memory activation
+↓
+Establish current-session memory context
+↓
+Enter normal ongoing recall mode
+
+This gives the system continuity across chat boundaries.
+
+The new session becomes:
+
+a new interaction with the existing living memory
+
+rather than:
+
+a completely empty memory context.
+
+⸻
+
+12. The Recall Processing Loop
+
+The complete living-memory loop is:
+
+1. Receive current experience
+
+↓
+
+2. Determine session state
+
+Is this:
+
+* initial/reconnection context?
+* ongoing context?
+
+↓
+
+3. Generate memory candidates
+
+Search the appropriate memory space.
+
+↓
+
+4. Perform pattern recognition
+
+Evaluate:
+
+* entity
+* relationship
+* experience
+* concept
+* time
+* cross-context relationship
+* direction
+* state change
+* contradiction/update
+
+↓
+
+5. Determine meaningful continuity
+
+Separate strong connections from superficial similarity.
+
+↓
+
+6. Determine recall depth
+
+Choose Level 0–4.
+
+↓
+
+7. Activate relevant memory
+
+Retrieve the appropriate historical context.
+
+↓
+
+8. Connect memory to the present
+
+Produce context that explains:
+
+why this memory matters to this particular experience now.
+
+↓
+
+9. Provide activated context to the LLM
+
+The LLM answers with the living context available.
+
+↓
+
+10. Process the new experience
+
+Determine whether the current interaction creates:
+
+* new durable information
+* new relationship information
+* new direction
+* new experience
+* correction
+* contradiction
+* continuation of an existing thread
+
+↓
+
+11. Update living memory
+
+The current experience becomes part of the continuing world.
+
+⸻
+
+13. The Central Architectural Rule
+
+The most important rule is:
+
+The LLM should not be the sole gatekeeper of memory recall.
+
+Instead:
+
+The living-memory system determines when the current experience has continuity with the accumulated world and activates memory accordingly.
+
+The LLM then operates over the activated context.
+
+This creates a separation between:
+
+memory relevance detection
+
+and:
+
+language generation.
+
+⸻
+
+14. What Makes This a “Living” Memory
+
+The system is not defined merely by persistence.
+
+Its living quality comes from the combination of:
+
+Persistence
++
+Truth awareness
++
+Temporal continuity
++
+Relational continuity
++
+Cross-context pattern recognition
++
+Present relevance
++
+Direction
++
+Selective recall
++
+Continuous updating
+
+The system therefore maintains an evolving relationship between:
+
+what happened
+
+what is happening
+
+what those experiences mean in relation to each other
+
+and:
+
+where the continuing experience is going.
+
+⸻
+
+15. Compact Definition
+
+A concise definition of the architecture is:
+
+Living Memory is a persistent, truth-aware, continuously updated memory system that recognizes patterns and relationships between past and present experience, activates relevant historical context when needed, connects experience across sessions and contexts, and maintains continuity with current direction.
+
+The key processing principle is:
+
+Every experience receives a memory relevance evaluation; not every experience receives the same depth of recall.
+
+And for a new session:
+
+Reconnection comes before ordinary relevance gating.
