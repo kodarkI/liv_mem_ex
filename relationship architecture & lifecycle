@@ -1,0 +1,313 @@
+Yes. I’d compress it into a small architecture document that is stable enough to use later during development, without turning the relationship system into another huge subsystem.
+Living Memory — Relationship Architecture & Lifecycle
+Core concept
+Relationships are persistent, evolving connections between memories, patterns, decisions, entities, states, and events.
+They are not automatically recalled into every prompt.
+Their purpose is to preserve structure across time, so that future retrieval can find not only what happened, but also how previously accumulated information connects.
+The LLM remains responsible for interpretation and reasoning.
+Living Memory is responsible for persistence, relationship state, relevance, and lifecycle.
+
+1. Core model
+Experience
+    ↓
+Memory
+    ↓
+Relationship / Pattern Evidence
+    ↓
+Relationship State
+    ↓
+Relevant Relationship Retrieval
+    ↓
+LLM Interpretation + Reasoning
+    ↓
+New Evidence
+    ↓
+Relationship Lifecycle Update
+    ↺
+The fundamental distinction is:
+STORED ≠ ACTIVE
+A relationship may exist in Living Memory without appearing in the current context.
+
+2. Relationship object
+A relationship should conceptually contain:
+Relationship
+├── source
+├── relation
+├── target
+│
+├── status
+├── strength
+├── confidence
+│
+├── evidence
+├── context
+├── created_at
+├── last_observed
+│
+└── history
+Meaning
+source
+ What the relationship starts from.
+relation
+ What kind of connection exists.
+Examples:
+related_to
+supports
+contradicts
+causes
+depends_on
+resembles
+reinforces
+supersedes
+target
+ What it connects to.
+status
+ Current lifecycle state.
+strength
+ How strongly the relationship is supported.
+confidence
+ How certain the system is about the relationship.
+evidence
+ Memories/events supporting it.
+context
+ Conditions under which the relationship applies.
+history
+ How the relationship changed over time.
+
+3. Relationship lifecycle
+The relationship should not simply be created and kept forever.
+               ┌──────────────┐
+                │   OBSERVED   │
+                └──────┬───────┘
+                       ↓
+                ┌──────────────┐
+                │   CANDIDATE  │
+                └──────┬───────┘
+                       ↓
+             sufficient evidence
+                       ↓
+                ┌──────────────┐
+                │    ACTIVE    │
+                └──────┬───────┘
+                 ↙     ↓      ↘
+          reinforce   revise   conflict
+             ↓         ↓         ↓
+         stronger   updated    weakened
+                           ↘
+                         superseded
+                              ↓
+                          archived
+And deletion is available when a relationship is no longer useful or valid.
+
+4. Lifecycle rules
+Add
+Create a candidate relationship when the system observes a potentially meaningful connection.
+Do not immediately treat it as established truth.
+new evidence
+    ↓
+candidate relationship
+Strengthen
+Repeated supporting evidence increases its strength.
+candidate
+   ↓
+repeated evidence
+   ↓
+stronger relationship
+Revise
+If the relationship’s meaning changes, update it rather than creating unnecessary duplicates.
+A → causes → B
+
+becomes:
+
+A → contributes_to → B
+under condition C
+Weaken
+Contradictory evidence or long-term absence can reduce its strength.
+Supersede
+When a newer relationship replaces an older one:
+old relationship
+      ↓
+superseded by
+      ↓
+new relationship
+Keep the historical record rather than pretending the old relationship never existed.
+Delete
+Remove relationships that are invalid, noise, duplicates, or no longer useful.
+
+5. Retrieval rule
+This is critical:
+Relationships are stored globally but activated locally.
+Don’t do:
+every prompt
+    ↓
+all memories
+    +
+all relationships
+Instead:
+Current input
+     ↓
+relevance detection
+     ↓
+relevant memories
+     ↓
+relationships connected to those memories
+     ↓
+relationship relevance filtering
+     ↓
+small active relationship set
+     ↓
+LLM
+Therefore:
+A relationship existing in memory does not mean it belongs in the prompt.
+
+6. Division of intelligence
+Living Memory handles
+preserve
+retrieve
+connect
+track
+prioritize
+update
+weaken
+supersede
+archive
+LLM handles
+interpret
+reason
+infer
+explain
+evaluate meaning
+propose relationships
+propose pattern changes
+make decisions
+This prevents Living Memory from trying to recreate the LLM’s general intelligence.
+
+7. Reasoning → memory feedback
+The LLM can discover something important during reasoning.
+But don’t necessarily store the entire reasoning process.
+Instead:
+LLM reasoning
+     ↓
+meaningful conclusion
+     ↓
+candidate memory / relationship / pattern
+     ↓
+Living Memory evaluates persistence
+     ↓
+stored if warranted
+For example:
+LLM:
+"This appears to be the third occurrence
+of the same architectural problem."
+
+          ↓
+
+Living Memory:
+
+Pattern:
+"Architecture X repeatedly produces Y
+under condition Z."
+
+Evidence:
+A, B, C
+
+Status:
+active
+The persistent object is the discovered structure, not the entire chain of thought.
+
+8. Pattern relationship
+A relationship can eventually become a higher-level pattern.
+Observation A
+Observation B
+Observation C
+       ↓
+Repeated relationship
+       ↓
+Pattern candidate
+       ↓
+Established pattern
+       ↓
+Future retrieval trigger
+This creates an important progression:
+experience → relationship → pattern → future relevance
+That is one of the central mechanisms of Living Memory.
+
+9. Minimal first implementation
+Do not build the entire lifecycle at once.
+The first version can be extremely small:
+Relationship
+{
+    source,
+    relation,
+    target,
+    status,
+    confidence,
+    evidence,
+    last_observed
+}
+With only:
+candidate
+active
+superseded
+archived
+Then implement:
+add
+update
+retrieve
+deactivate
+Everything else can emerge later.
+
+10. The architectural principle
+Put this at the top of the future development document:
+Living Memory does not attempt to become the reasoning engine. It provides persistent, evolving relational structure that allows the reasoning engine to operate across time.
+And the second principle:
+Stored relationships are not automatically active context. Relationships enter the LLM context only when current relevance makes them useful.
+And the third:
+Relationships are living objects: they can be created, strengthened, revised, weakened, superseded, archived, or deleted as new evidence appears.
+
+11. The complete compressed model
+                   ┌───────────────┐
+                    │   EXPERIENCE  │
+                    └───────┬───────┘
+                            ↓
+                    ┌───────────────┐
+                    │     MEMORY    │
+                    └───────┬───────┘
+                            ↓
+                  ┌───────────────────┐
+                  │ RELATIONSHIP /    │
+                  │ PATTERN EVIDENCE  │
+                  └─────────┬─────────┘
+                            ↓
+                  ┌───────────────────┐
+                  │    LIFECYCLE      │
+                  │ add/update/weaken  │
+                  │ supersede/archive  │
+                  └─────────┬─────────┘
+                            ↓
+                  ┌───────────────────┐
+                  │ RELEVANCE FILTER  │
+                  └─────────┬─────────┘
+                            ↓
+                  ┌───────────────────┐
+                  │  ACTIVE CONTEXT   │
+                  │ memory + relation │
+                  │ + protocol + state│
+                  └─────────┬─────────┘
+                            ↓
+                         ┌───────┐
+                         │  LLM  │
+                         └───┬───┘
+                             ↓
+                   interpretation
+                    + reasoning
+                             ↓
+                    new experience
+                    / new evidence
+                             ↓
+                       MEMORY UPDATE
+                             ↺
+The one sentence version
+Living Memory remembers not only experiences, but evolving relationships between experiences; those relationships have their own lifecycle and are selectively activated when relevant, while the LLM remains responsible for interpretation and reasoning.
+I would save this version as the architectural concept, rather than implementing all of it immediately. It gives your future development a stable target without forcing today’s relatively small system to become enormous.
+
