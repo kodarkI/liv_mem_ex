@@ -1,0 +1,253 @@
+Yes. The cards converge on one architecture. Here is the compressed solution to develop against.
+
+Core architecture
+
+Do not build the recorder as a prompt/response recorder. Build it as an event + execution + state system.
+
+The hierarchy is:
+
+Protocol = authority
+State = current condition
+Transition = movement between states
+Execution = actual AI work
+Event = something that happened
+Record = immutable history of those events
+
+1. Normal execution
+
+USER EVENT
+  ↓
+PROTOCOL / ENFORCEMENT
+  ↓
+READ CURRENT STATE
+  ↓
+DETERMINE ACTION / TRANSITION
+  ↓
+AI EXECUTION
+  ↓
+UPDATE STATE
+  ↓
+RECORD RESULT
+
+Critical invariant:
+
+Every new user instruction passes through protocol/enforcement before execution.
+
+Do not let the current state implicitly authorize an action.
+
+⸻
+
+2. Recording
+
+Record the user prompt before AI executes.
+
+USER_PROMPT
+→ AI_EXECUTION_STARTED
+→ AI_OUTPUT
+→ AI_EXECUTION_COMPLETED
+
+Preserve:
+
+* event ID
+* execution ID
+* parent/related event ID
+* timestamp/order
+* event type
+* content
+* execution status
+* completion status
+* state before/after
+* transition, if any
+
+Never rewrite the historical record.
+
+⸻
+
+3. Interruption
+
+An interruption is an event/state transition, not automatically a new prompt.
+
+USER_PROMPT
+→ EXECUTION_STARTED
+→ PARTIAL_OUTPUT
+→ USER_INTERRUPTION
+→ EXECUTION_INTERRUPTED
+
+Preserve the partial output.
+
+Do not mark interrupted output as completed.
+
+Then classify the interruption:
+
+* stop/cancel
+* continue/resume
+* correction
+* clarification
+* modification
+* new instruction
+* unrelated request
+
+⸻
+
+4. Resume
+
+Resume must NOT restart the whole execution.
+
+For:
+
+EXECUTION_INTERRUPTED
+→ USER: "continue"
+
+the protocol evaluates the event, recognizes it as a resume, then:
+
+PROTOCOL
+→ READ EXISTING STATE
+→ IDENTIFY EXISTING EXECUTION
+→ RESTORE CONTEXT
+→ RESUME EXECUTION
+→ UPDATE STATE
+→ RECORD
+
+So:
+
+Protocol decides whether/how to resume. State provides the continuity needed to resume.
+
+⸻
+
+5. New instruction during interruption
+
+If the interruption changes the task:
+
+OLD EXECUTION
+→ INTERRUPTION / NEW INSTRUCTION
+→ OLD EXECUTION = INTERRUPTED
+→ NEW USER INSTRUCTION
+→ NEW EXECUTION
+
+But preserve lineage:
+
+Original instruction
+    ↓
+Execution A
+    ↓
+Interruption
+    ↓
+Modified instruction
+    ↓
+Execution B
+
+Never overwrite A with B.
+
+⸻
+
+6. The anti-drift rule
+
+This is the most important part for Luna.
+
+State must never become the protocol.
+
+Bad:
+
+USER REQUEST
+→ CURRENT STATE
+→ "I know what to do"
+→ EXECUTE
+
+Correct:
+
+USER REQUEST
+→ PROTOCOL
+→ READ STATE
+→ CLASSIFY EVENT
+→ DETERMINE AUTHORIZED ACTION
+→ EXECUTE
+
+Even if the action looks completely obvious from the current state, protocol re-entry still happens.
+
+This prevents the drift you observed after introducing state.
+
+⸻
+
+7. State / protocol / transition separation
+
+Keep these conceptually independent:
+
+Protocol: What rules apply?
+State: Where are we?
+Transition: How do we move?
+Execution: What work is performed?
+Event: What happened?
+
+Do not collapse them into one mechanism.
+
+Especially:
+
+Transition is not authorization.
+
+A transition must still be permitted by protocol.
+
+⸻
+
+8. Interruption guard
+
+The guard protects the existing execution while the new event is being interpreted.
+
+AI EXECUTING
+    ↓
+INTERRUPTION
+    ↓
+GUARD
+    ↓
+PROTOCOL CLASSIFICATION
+    ↓
+┌───────────────┬─────────────────┐
+│ RESUME        │ CHANGE / NEW    │
+│               │                 │
+│ reuse same    │ interrupt old   │
+│ execution     │ execution       │
+└───────────────┴─────────────────┘
+
+This prevents an interruption from accidentally mutating or destroying the previous execution.
+
+⸻
+
+9. The complete model
+
+                    ┌──────────────┐
+                    │ USER EVENT   │
+                    └──────┬───────┘
+                           ↓
+                 ┌───────────────────┐
+                 │ PROTOCOL /        │
+                 │ ENFORCEMENT       │
+                 └────────┬──────────┘
+                          ↓
+                 ┌───────────────────┐
+                 │ READ CURRENT      │
+                 │ STATE             │
+                 └────────┬──────────┘
+                          ↓
+                 ┌───────────────────┐
+                 │ CLASSIFY EVENT    │
+                 └────────┬──────────┘
+                          ↓
+              ┌───────────┴────────────┐
+              ↓                        ↓
+          CONTINUE                  NEW/CHANGE
+              ↓                        ↓
+       RESUME EXISTING          TRANSITION / NEW
+          EXECUTION                EXECUTION
+              ↓                        ↓
+              └───────────┬────────────┘
+                          ↓
+                    AI EXECUTION
+                          ↓
+                    STATE UPDATE
+                          ↓
+                  IMMUTABLE RECORD
+
+One-line design principle
+
+Protocol governs every event; state preserves continuity; transitions change state; interruptions preserve execution history; resume continues the existing execution; new instructions create new execution lineage; and every event is recorded without rewriting history.
+
+That is the compressed architecture I’d use as the foundation for developing the system.
