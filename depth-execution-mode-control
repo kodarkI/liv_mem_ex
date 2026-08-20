@@ -1,0 +1,645 @@
+Yes. The cleanest design is to treat Small / Medium / Full as an execution-mode controller above the existing protocol, not as three different memory systems.
+
+Depth Control Protocol — Full Solution Design
+
+1. Core concept
+
+The system has two separate layers:
+
+                    INCOMING USER PROMPT
+                            │
+                            ▼
+                 ┌─────────────────────┐
+                 │  DEPTH CONTROLLER   │
+                 │  Quick assessment   │
+                 └──────────┬──────────┘
+                            │
+                  ┌─────────┼─────────┐
+                  ▼         ▼         ▼
+               SMALL     MEDIUM      FULL
+                  │         │         │
+                  └─────────┼─────────┘
+                            ▼
+                  EXECUTION PROTOCOL
+                            │
+             ┌──────────────┼──────────────┐
+             ▼              ▼              ▼
+          Recall         Tasks/files     Memory work
+                            │
+                            ▼
+                 User/Agent recording
+                            │
+                            ▼
+                       Consolidation
+
+The key idea is:
+
+Depth controls how much processing happens. It does not decide whether mandatory protocol operations happen.
+
+So recording user and agent is not a Small/Medium/Full choice.
+
+⸻
+
+2. The Depth Controller
+
+The Depth Controller is a lightweight LLM-level routing step.
+
+Its job is only:
+
+1. Understand what the user is asking.
+2. Estimate the amount of processing actually required.
+3. Select Small, Medium, or Full.
+4. Start that execution mode.
+5. Escalate if reality proves the initial classification insufficient.
+
+It should not execute the whole memory protocol while deciding the depth.
+
+Conceptually
+
+Prompt
+  ↓
+Quick classification
+  ↓
+Choose initial depth
+  ↓
+Execute
+
+Not:
+
+Prompt
+  ↓
+Start full protocol
+  ↓
+Read everything
+  ↓
+Do everything
+  ↓
+Decide whether it was actually simple
+
+That defeats the entire purpose.
+
+⸻
+
+3. Three execution modes
+
+SMALL — Direct execution
+
+Purpose:
+
+Handle simple requests with the minimum processing required.
+
+Typical characteristics:
+
+* straightforward question
+* current prompt contains enough information
+* no substantial file investigation
+* no complex external/contextual investigation
+* no complicated multi-step task
+* no major state change
+* no extensive memory lifecycle operation required
+
+Execution:
+
+Receive prompt
+↓
+Minimal relevant recall/context
+↓
+Answer / perform simple task
+↓
+Record user
+↓
+Record agent
+↓
+Finish
+
+Small does not mean:
+
+“Ignore memory.”
+
+It means:
+
+“Do not activate unnecessary processing.”
+
+⸻
+
+4. MEDIUM — Targeted execution
+
+Purpose:
+
+Handle requests requiring additional context, files, tools, or several operations without activating the entire lifecycle.
+
+Typical triggers:
+
+* relevant file needs to be inspected
+* targeted recall is needed
+* comparison is required
+* several reasoning steps are needed
+* moderate tool usage
+* moderate state interpretation
+* task has several connected operations
+
+Execution:
+
+Receive prompt
+↓
+Quick assessment
+↓
+Relevant recall
+↓
+Targeted file/context access
+↓
+Perform required operations
+↓
+Record user/agent
+↓
+Perform required limited memory processing
+↓
+Finish
+
+The important word is targeted.
+
+Medium should not automatically mean:
+
+“Read every relevant file.”
+
+It means:
+
+“Access the information actually required for this task.”
+
+⸻
+
+5. FULL — Comprehensive execution
+
+Purpose:
+
+Handle requests where broad context, extensive investigation, delegation, or substantial lifecycle work is genuinely required.
+
+Triggers can include:
+
+* complex multi-step task
+* substantial file investigation
+* many interacting pieces of context
+* major memory/state changes
+* extensive analysis
+* broad restructuring
+* complex delegation
+* comprehensive lifecycle processing
+* task explicitly requiring thorough treatment
+
+Execution:
+
+Receive prompt
+↓
+Full assessment
+↓
+Recall broader relevant context
+↓
+Inspect required files/resources
+↓
+Delegate work where available
+↓
+Execute multiple operations
+↓
+Validate results
+↓
+Record user/agent
+↓
+Perform deeper memory lifecycle processing
+↓
+Consolidate/update
+↓
+Finish
+
+Full is the expensive path.
+
+It should be activated because the task warrants it, not merely because the protocol exists.
+
+⸻
+
+6. Recording is outside the depth system
+
+This is the most important architectural boundary.
+
+Do not make this:
+
+Small → maybe record
+Medium → probably record
+Full → definitely record
+
+Instead:
+
+                    EXECUTION DEPTH
+                 /       |        \
+             SMALL    MEDIUM     FULL
+                 \       |        /
+                  \      |       /
+                   USER/AGENT RECORDING
+                          │
+                          ▼
+                    MEMORY LIFECYCLE
+
+Recording is an invariant layer.
+
+User
+
+A user interaction occurs → record the user interaction.
+
+Agent
+
+An agent interaction occurs → record the agent interaction.
+
+Then another layer can decide whether that record deserves:
+
+* extraction
+* consolidation
+* promotion
+* linking
+* long-term semantic memory
+* summarization
+* deduplication
+* other lifecycle processing
+
+This gives you:
+
+Comprehensive interaction history + selective deeper memory processing.
+
+That is much cleaner than trying to decide whether every turn is “meaningful enough” to exist.
+
+⸻
+
+7. “Meaningful” should not control basic recording
+
+Avoid this:
+
+Is user message meaningful?
+    ↓
+Yes → record
+No → don't record
+
+Because Luna would eventually create holes in the conversational history.
+
+Instead:
+
+Did the interaction occur?
+    ↓
+Yes → record it
+
+Then:
+
+Does this record contain information worth deeper memory processing?
+    ↓
+Yes → process further
+No → retain basic record only
+
+Therefore:
+
+Recording = comprehensive.
+
+Memory extraction = selective.
+
+Consolidation = selective.
+
+⸻
+
+8. Depth selection criteria
+
+Do not define depth purely as:
+
+Small = easy
+Medium = moderate
+Full = hard
+
+That is too subjective.
+
+Define it through observable requirements.
+
+Small if:
+
+* prompt is self-contained
+* answer requires little additional context
+* no substantial file access
+* no complex task execution
+* no major state transition
+* no extensive investigation
+
+Medium if:
+
+* specific additional context is required
+* targeted files need to be read
+* several operations are required
+* moderate state/memory interpretation is necessary
+* task cannot be completed reliably from the prompt alone
+
+Full if:
+
+* broad investigation is necessary
+* many files/context sources must be coordinated
+* task contains substantial dependent steps
+* significant memory/state changes are involved
+* extensive lifecycle work is required
+* delegation is beneficial or necessary
+
+⸻
+
+9. Depth is an initial estimate
+
+Luna should not be locked into the initial decision.
+
+The initial classification is:
+
+best current estimate
+
+not:
+
+permanent mode.
+
+Example:
+
+User asks simple question
+↓
+SMALL
+↓
+Luna discovers answer requires inspecting a project file
+↓
+ESCALATE → MEDIUM
+↓
+File reveals several dependent systems
+↓
+ESCALATE → FULL
+
+This is essential.
+
+Otherwise Luna has to either:
+
+* over-process everything initially, or
+* risk being unable to handle complexity discovered later.
+
+The correct solution is dynamic escalation.
+
+⸻
+
+10. Escalation rule
+
+Use:
+
+SMALL
+  ↓ requirement discovered
+MEDIUM
+  ↓ requirement discovered
+FULL
+
+The system should be allowed to escalate when it discovers that the current depth cannot reliably complete the task.
+
+Escalation triggers
+
+For example:
+
+* required file access discovered
+* additional context becomes necessary
+* task gains additional dependent steps
+* memory state becomes relevant
+* current information is insufficient
+* validation becomes necessary
+* external/sub-agent work becomes necessary
+* state changes become more substantial than initially expected
+
+The rule is:
+
+If the current mode cannot reliably complete the task, escalate rather than guessing or skipping required work.
+
+⸻
+
+11. Don’t let “Small” become a bypass
+
+There is one dangerous failure mode:
+
+Luna chooses Small because Small is cheaper, even though the task actually requires deeper processing.
+
+Therefore:
+
+Depth selection optimizes processing. It does not override task requirements.
+
+A Small classification must never mean:
+
+* skip necessary files
+* skip required recall
+* skip required recording
+* skip required validation
+* skip required protocol steps
+* give an incomplete answer merely to remain Small
+
+If the task requires more, Small becomes Medium or Full.
+
+⸻
+
+12. Recall and depth
+
+Recall belongs to Luna’s normal interaction flow.
+
+But the amount of recall can be depth-sensitive.
+
+Small
+
+Recall only immediately relevant context.
+
+Medium
+
+Recall relevant context + targeted historical/file context.
+
+Full
+
+Recall broader relevant context and perform deeper retrieval/integration.
+
+This prevents every trivial question from triggering maximal retrieval.
+
+But recall itself should not be treated as an optional feature.
+
+⸻
+
+13. Files and tasks
+
+The same principle applies to files.
+
+Do not make:
+
+“Full protocol = read all files.”
+
+Instead:
+
+Read what the selected task requires.
+
+Small
+
+No file access unless genuinely required.
+
+Medium
+
+Read specifically relevant files.
+
+Full
+
+Inspect broader sets of files/resources when the task actually requires them.
+
+This is especially important for the VS Code environment you described, because unrestricted file checking can easily become the dominant source of latency.
+
+⸻
+
+14. Sub-agents
+
+Sub-agents are a work-distribution mechanism, not another depth dimension.
+
+For example:
+
+                 LUNA
+                   │
+          Depth Controller
+                   │
+            MEDIUM / FULL
+                   │
+          ┌────────┴────────┐
+          │                 │
+       Main work       Sub-agent work
+          │                 │
+          └────────┬────────┘
+                   ▼
+               Result
+                   ▼
+              Luna response
+
+Luna remains the visible orchestrator.
+
+Sub-agents can handle:
+
+* file inspection
+* specialized processing
+* memory lifecycle operations
+* background work
+* repetitive tasks
+* other delegated operations
+
+The user doesn’t need to know which internal worker performed which operation.
+
+⸻
+
+15. Memory lifecycle versus interaction execution
+
+These should also be separated.
+
+Interaction layer
+
+Responsible for:
+
+* understanding user
+* answering
+* performing requested tasks
+* maintaining conversational continuity
+
+Memory layer
+
+Responsible for:
+
+* recording user
+* recording agent
+* retrieval
+* consolidation
+* updating memory
+* lifecycle maintenance
+
+Depth controller
+
+Responsible for:
+
+* deciding how much processing is warranted
+
+So:
+
+                    LUNA
+                     │
+             ┌───────┴────────┐
+             │                │
+       DEPTH CONTROL      INVARIANTS
+             │                │
+      Small/Medium/Full   User recording
+             │             Agent recording
+             │             Core protocol
+             │                │
+             └───────┬────────┘
+                     ▼
+                EXECUTION
+                     │
+          ┌──────────┼──────────┐
+          ▼          ▼          ▼
+       Recall      Tasks      Files
+          │          │          │
+          └──────────┼──────────┘
+                     ▼
+              Memory lifecycle
+
+⸻
+
+16. The complete lifecycle
+
+The final conceptual lifecycle becomes:
+
+USER PROMPT
+    │
+    ▼
+┌──────────────────────┐
+│ QUICK DEPTH ASSESSMENT│
+└──────────┬───────────┘
+           │
+      Small / Medium / Full
+           │
+           ▼
+┌──────────────────────┐
+│     EXECUTION        │
+│                      │
+│ depth determines     │
+│ processing intensity │
+└──────────┬───────────┘
+           │
+           ├──────────────► escalate if required
+           │
+           ▼
+┌──────────────────────┐
+│ USER/AGENT RECORDING │
+│      INVARIANT       │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ MEMORY PROCESSING    │
+│ selective by need    │
+└──────────┬───────────┘
+           │
+           ▼
+       CONSOLIDATE
+           │
+           ▼
+        NEXT TURN
+
+⸻
+
+17. The actual protocol in compact form
+
+If you want the whole design reduced to the core rules:
+
+Depth Control Protocol
+
+1. On every incoming user request, Luna performs a lightweight complexity assessment.
+2. Luna selects an initial execution mode: Small, Medium, or Full.
+3. The selected mode determines the amount and depth of recall, file access, task processing, delegation, validation, and memory-lifecycle work.
+4. Small performs only the minimum processing required.
+5. Medium performs targeted additional processing.
+6. Full performs comprehensive processing and lifecycle work.
+7. The initial mode is provisional. Luna may escalate Small → Medium → Full whenever task requirements discovered during execution justify it.
+8. Depth selection must itself be lightweight and must not require executing the deeper protocol being selected.
+9. User and agent interaction recording is independent of execution depth and remains mandatory.
+10. “Meaningful” must not determine whether an interaction is recorded; it may determine whether the recorded interaction receives deeper memory processing.
+11. Core protocol requirements cannot be bypassed merely because the request is classified as Small.
+12. Sub-agents may perform delegated work automatically, but they are an implementation mechanism rather than part of the depth classification itself.
+13. The objective is proportional processing: simple requests remain fast while complex requests receive the full living-memory lifecycle.
+
+In one sentence
+
+Luna should think of Small/Medium/Full as an execution-mode router: quickly estimate how much work the current request actually requires, execute only that depth, escalate when reality demands more, while keeping user/agent recording and other mandatory invariants outside the depth decision.
