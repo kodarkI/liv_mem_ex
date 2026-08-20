@@ -1,5 +1,3 @@
-Yes. The cards converge on one architecture. Here is the compressed solution to develop against.
-
 Core architecture
 
 Do not build the recorder as a prompt/response recorder. Build it as an event + execution + state system.
