@@ -1,0 +1,69 @@
+Core principle: Record events and executions, not just prompt/response pairs. An interruption is a state transition, not automatically a new prompt.
+Data model
+event_id — unique per event
+
+
+execution_id — unique per AI run
+
+
+parent_event_id — links related events (preserves lineage)
+
+
+timestamp — exact chronology
+
+
+event_type — prompt / interruption / partial_output / completion / cancellation
+
+
+execution_status — started / in_progress / completed / interrupted / cancelled / failed
+
+
+content — what was said/produced
+
+
+completion_state — complete vs partial
+
+
+Interruption classification (decide this first) When a user interrupts, classify what it is before recording it:
+Stop/cancel — no new content
+
+
+Clarification — doesn’t change the task
+
+
+Correction/modification — changes the current task
+
+
+New instruction — different task entirely
+
+
+Unrelated request
+
+
+Only categories 3–5 spawn a new execution. Categories 1–2 just change status on the existing one.
+Flow patterns
+Normal:
+USER_PROMPT → EXECUTION_STARTED → RESPONSE_COMPLETED
+
+Interrupted with stop only:
+USER_PROMPT → EXECUTION_STARTED → PARTIAL_OUTPUT → INTERRUPTION → EXECUTION_INTERRUPTED
+
+Interrupted with new/modified instruction:
+USER_PROMPT → EXECUTION_STARTED → PARTIAL_OUTPUT → INTERRUPTION 
+→ EXECUTION_INTERRUPTED → NEW_INSTRUCTION (parent=original) → NEW_EXECUTION → NEW_RESPONSE
+
+Rules to enforce
+Never overwrite or delete the original prompt/execution — append, don’t mutate.
+
+
+Partial AI output is preserved with status partial/interrupted, not silently discarded or marked “completed.”
+
+
+New instructions triggered by an interruption always link back (parent_event_id) to the execution they interrupted — this is how you keep lineage instead of a flat transcript.
+
+
+If multiple interruptions stack up, each gets its own event so you can always answer “what belonged to which execution.”
+
+
+That’s the whole thing: give every event an identity, give every execution a status, classify interruptions before recording them, and never rewrite history — only append to it.
+
