@@ -24,3 +24,125 @@ The “do not merely restate” part is especially important. Otherwise Luna may
 What you’re asking it for is not simply simplification.
 
 You’re asking for understanding to be constructed from the information.
+
+
+Yes — the cards say that if you make no change to the present/short-term handling, you will probably have to explicitly mark certain old requests as no longer applicable when they conflict with what you want now. But they also show that doing this every single time will become a recurring problem.
+
+🔮 Pull
+
+The Emperor reversed — the underlying problem
+
+This repeats from the previous reading, and that repetition matters.
+
+The system is still not establishing a clean boundary between:
+
+* what remains historical context,
+* what is currently active,
+* and what has been replaced.
+
+So if you leave the present handling completely unchanged, old instructions can continue entering the current state.
+
+⸻
+
+Eight of Swords — if you simply keep saying “do this instead”
+
+This shows the loop you’re worried about.
+
+You say:
+
+“For this request, do X.”
+
+Luna incorporates X, but keeps an older Y alive.
+
+Later you say:
+
+“Now do Z.”
+
+And Y can come back again.
+
+So yes: if nothing changes underneath, there is a genuine possibility of repeatedly fighting the same behavior.
+
+⸻
+
+Should you explicitly tell it what to stop using?
+
+Justice — yes, when there is a conflict.
+
+The cards favor making the boundary explicit.
+
+But there is an important distinction:
+
+Don’t tell it to erase the old request unless you actually want it gone.
+
+Instead, establish its current applicability.
+
+For example:
+
+“For this prompt and the current task, do not apply my previous request about X. That request remains part of the conversation history, but it is not an active instruction for this task. Use my current request instead.”
+
+That is much closer to what you’re actually asking for.
+
+You’re not saying:
+
+“Forget X.”
+
+You’re saying:
+
+“X exists, but X is inactive here.”
+
+⸻
+
+But will that solve it permanently?
+
+Wheel of Fortune reversed
+
+No.
+
+That’s the important warning.
+
+If the underlying handling remains unchanged, explicit declarations can reduce the problem without eliminating its recurrence.
+
+You’ll potentially end up having to keep telling Luna:
+
+“This old instruction isn’t active anymore.”
+
+Then another old instruction can surface later.
+
+That is exactly the repetitive cycle you’re sensing.
+
+⸻
+
+What should your strategy be?
+
+King of Swords
+
+Make a very explicit distinction between history and active instructions.
+
+I would tell Luna once, at a high level:
+
+My newer prompts can update or supersede the applicability of previous requests without deleting those requests from context. Do not automatically treat every previous request as an active standing instruction. For each current task, determine which prior instructions are still applicable. If my current prompt changes a previous request, follow the current request for the current task while retaining older information as historical context. Only treat something as permanently changed or removed when I explicitly say so.
+
+Then, when a specific old instruction keeps leaking into a current task, explicitly mark that particular instruction as inactive for the present task.
+
+⸻
+
+🔮 Final card: Temperance
+
+This gives the cleanest answer.
+
+You don’t need to purge everything.
+
+You don’t need to constantly fight the old context either.
+
+The desired state is:
+
+Old request = retained information
+Current request = current instruction
+Changed request = current instruction takes precedence for the relevant situation
+Explicitly removed request = no longer used at all
+
+So your concern is correct: if Luna continues treating old instructions as newly active instructions, merely adding more new prompts won’t necessarily solve the recurrence.
+
+The cards favor teaching/declaring the distinction between “remembered” and “currently active” rather than repeatedly deleting old context.
+
+That is the structural change I’d make first.
