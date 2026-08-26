@@ -1,0 +1,26 @@
+Yes. Prompting Luna to answer those explicitly is the right move. The cards’ energy strongly favors giving it a required explanatory structure rather than simply asking it to “explain more.”
+
+I would give Luna something like:
+
+Don’t just report the facts or findings. I need you to make me understand the subject. For every important point, explain:
+
+1. What is happening — describe the actual situation clearly.
+2. Why it is happening — explain the mechanism or cause behind it.
+3. How the pieces connect — show how the different facts, components, or events relate to each other.
+4. What the important distinctions are — explicitly distinguish things that might otherwise look similar or confusing.
+5. What the whole system looks like — give me the overall mental model, not just individual facts.
+6. Why the conclusion follows — walk through how the evidence leads to the conclusion.
+
+Do not assume that presenting facts means I understand them. Connect the facts into an explanation.
+
+After the detailed explanation, give me a concise “how to think about this” section that summarizes the underlying model in plain language.
+
+If you introduce a technical term, explain what it means and why it matters before continuing to build on it.
+
+Do not merely restate the report in simpler words. Add the missing relationships, mechanisms, and reasoning that make the report understandable.
+
+The “do not merely restate” part is especially important. Otherwise Luna may just take its existing report and paraphrase it, which would give you essentially the same problem in different wording.
+
+What you’re asking it for is not simply simplification.
+
+You’re asking for understanding to be constructed from the information.
