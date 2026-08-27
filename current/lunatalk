@@ -335,3 +335,6 @@ Read my entire MCP recording concept first. Based strictly on that concept, writ
 Do not invent a new memory architecture or simplify my concept. Preserve its intended meaning. If anything is ambiguous or contradictory, flag it separately instead of silently changing it. Make the rules explicit enough for the augmented code to follow consistently.
 And I would do this before more recording. The reading keeps pointing to the same thing: the governing architecture needs to be settled before you invest more time feeding it data.
 
+
+
+Read my MCP recording concept and existing skills.md. Do not replace either. Determine what belongs in system RULES, what belongs in GUIDELINES, and what should remain procedural in skills.md. Preserve the architecture and avoid duplicating instructions unnecessarily. Produce a clean separation between governing behavior, judgment guidelines, and operational procedures
