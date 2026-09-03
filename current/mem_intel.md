@@ -192,7 +192,39 @@ It must not call mutation methods on these components during classification.
 The router may submit a proposal to an authority queue. The authority, not the
 router, decides whether a canonical record is created or changed.
 
-### 4.3 Separation from Context Expansion
+### 4.3 Current-to-target Dispatcher mapping
+
+The repository does not yet contain a standalone Mutation Dispatcher. Until
+Milestone C creates one, the effective scheduling boundary is distributed across:
+
+- `mcp_server._submit_mutation_job()` — admission-facing submission;
+- `mcp_server._start_worker()` — worker-start launch;
+- `mutation_jobs.create_or_get_job()` — durable identity and queue record;
+- `mutation_jobs.reserve_worker_start()` — startup reservation/token;
+- `mutation_jobs.claim_job()` — FIFO/lease/version-protected worker claim;
+- `mutation_worker.py` — execution and result persistence.
+
+The target mapping is:
+
+| Current responsibility | Target owner |
+|---|---|
+| Submit durable parent job | MCP admission + mutation store |
+| Select oldest eligible job | Mutation Dispatcher |
+| Reserve worker start | Mutation Dispatcher through mutation store |
+| Launch worker | Mutation Dispatcher |
+| Claim execution lease | Worker through mutation store |
+| Persist raw Experience | Recording service |
+| Schedule classification child | Dispatcher/worker handoff protocol |
+| Classify and create proposals | Memory Intelligence child worker |
+| Apply State/Relationship/Event Relation | Their canonical authorities |
+| Reconcile uncertain parent/source | Step2D |
+| Publish audit events | Audit Outbox Publisher |
+
+The Dispatcher must not be introduced as an in-memory queue that bypasses the
+durable job store. The source-persisted handoff defined below is the contract
+that closes the crash window between recording and classification scheduling.
+
+### 4.4 Separation from Context Expansion
 
 The hook-and-expansion design correctly identifies two independent outputs:
 
@@ -270,7 +302,97 @@ The source writer persists the raw Experience with:
 The raw source becomes eligible for classification only after it can be read
 authoritatively from the Experience store.
 
-### Stage 4 — Bounded old-context retrieval
+### Stage 3A — Durable source-persisted handoff
+
+Source persistence and classification scheduling must have a durable join. The
+worker or recording service must append an immutable `source_persisted` handoff
+record containing:
+
+- `handoff_id`;
+- `source_experience_id`;
+- `source_hash`;
+- `recording_operation_id`;
+- `interaction_id` and exact lineage;
+- source role;
+- `in_response_to`, when applicable;
+- source persistence timestamp;
+- parent job version at handoff;
+- required classification policy version;
+- handoff idempotency key;
+- handoff status.
+
+The handoff status is:
+
+`RECORDED → CLASSIFICATION_SCHEDULED → CLASSIFICATION_ATTACHED`
+
+or, when the derived job cannot be scheduled:
+
+`RECORDED → SCHEDULING_UNKNOWN → RECONCILIATION_REQUIRED`
+
+The handoff is not a second source Experience and does not replace the parent
+job. It is the authoritative discovery point for a sweeper after a worker
+crash. A sweeper must use the handoff idempotency key to create or recover one
+classification child job.
+
+The atomicity requirement is deliberately explicit:
+
+- if source and handoff are committed together, classification scheduling can
+  resume deterministically;
+- if source commits but handoff outcome is ambiguous, Step2D reconciles the
+  parent and the sweeper searches by source ID/hash before creating a child;
+- if source does not exist authoritatively, no classification child is eligible.
+
+The handoff must not claim that classification completed. It only proves that
+an authoritative source became eligible for derived processing.
+
+#### Handoff durability and recovery contract
+
+The source-persisted handoff is a protocol event, not a best-effort callback.
+The target implementation must:
+
+1. include the source record and handoff event in the same transaction-journal
+   commit when the storage layer supports a multi-record transaction;
+2. otherwise write a prepared transaction manifest before either record is
+   considered committed, then recover the manifest through the existing
+   transaction/recovery authority;
+3. use a deterministic `handoff_id` derived from source Experience ID, source
+   hash, and classification policy version;
+4. protect handoff attachment with an expected parent job version and the
+   mutation-store lock/CAS update;
+5. store immutable handoff events under protocol evidence storage and derive
+   current handoff status from the append-only event history;
+6. let the sweeper scan committed handoffs and create exactly one child job by
+   the handoff idempotency key;
+7. treat a prepared-but-unresolved handoff as `UNKNOWN`, never as absent;
+8. preserve the original source and handoff evidence when a child job cannot be
+   created.
+
+The source Experience is authoritative for source existence. The handoff is
+authoritative only for derived-classification eligibility. Neither artifact
+authorizes State, Relationship, or Event Relation commitment.
+
+### Stage 4 — Pre-classification hints and bounded old-context retrieval
+
+Retrieval cannot depend on semantic claims that have not yet been classified.
+Use a two-pass workflow:
+
+1. **Deterministic pre-pass** extracts explicit, low-risk hints from the source:
+   project/thread IDs, exact response target, declared Entity IDs, quoted
+   identifiers, explicit temporal expressions, and lexical terms. It does not
+   infer a Relationship or State.
+2. **Optional New Expansion pass** creates bounded investigation questions from
+   those hints and the source role. It may identify candidate concepts, but it
+   does not create memory proposals.
+3. **First Recall pass** retrieves bounded context using only explicit hints,
+   scope, metadata, and governed search.
+4. **LLM classification pass** interprets the source relative to the first
+   context and emits claims/proposals.
+5. **Optional second Recall pass** may retrieve evidence for an unresolved
+   claim, but only through a deterministic allowlisted request derived from the
+   validated classifier output. The second pass cannot expand scope without an
+   explicit policy decision.
+6. **Reconciliation pass** compares claims with current State, Relationship,
+   History, provenance, and supersession evidence before routing.
 
 The classifier receives a bounded context package, not the entire memory store.
 
@@ -291,6 +413,30 @@ The retrieval layer may use:
 
 The result must include source IDs and reasons. It must not be treated as a
 commitment or authorization.
+
+### Stage 4A — Recording-time versus pre-draft context
+
+Recording-time classification is normally asynchronous. It cannot guarantee
+that new proposals finish before the main Agent drafts the current response.
+
+The synchronous pre-draft path remains:
+
+`User prompt → New Expansion/retrieval intent → governed Recall → Context
+Expansion → Main Agent`
+
+The recording-time path is:
+
+`source Experience → source-persisted handoff → bounded context →
+classification → proposals → Governance`
+
+Recording-time `context_expansion_signals` are therefore for later turns or an
+explicitly completed read request. They must not be presented as current-turn
+authoritative context merely because they were generated after the response.
+
+If a host explicitly requests synchronous interpretation before drafting, that
+is a separate bounded, read-only New Expansion operation with its own timeout,
+readiness behavior, and context contract. It must not be implemented inside the
+Stop hook and it must not reuse the recording-time classification child job.
 
 If retrieval is unavailable, classification may:
 
@@ -392,7 +538,7 @@ The classification artifact is a derived, versioned record.
 | `policy_version` | Classification policy version |
 | `context_fingerprint` | Hash of bounded old-context package |
 | `classification_idempotency_key` | Stable replay key |
-| `classification_status` | `CLASSIFIED`, `PARTIAL`, `REVIEW_REQUIRED`, `DEFERRED`, or `FAILED` |
+| `classification_status` | `PENDING`, `CLASSIFIED`, `PARTIAL`, `REVIEW_REQUIRED`, `DEFERRED`, `FAILED`, `UNKNOWN`, or `DEAD_LETTERED` |
 | `interaction_intent` | One or more semantic intents |
 | `claims` | Typed extracted claims |
 | `proposals` | Proposal-only memory operations |
@@ -532,6 +678,91 @@ REQUEST_RESOLUTION → APPLIED`
 Failure states should include `FAILED`, `UNKNOWN`, and `DEAD_LETTERED` with
 bounded recovery metadata. They are independent of the parent mutation job
 status.
+
+### 6.7 Normative derived lifecycle
+
+The following state machines are normative and must not be collapsed into one
+status field.
+
+#### Classification artifact
+
+`PENDING → CLASSIFIED | PARTIAL | REVIEW_REQUIRED | DEFERRED | FAILED |
+UNKNOWN | DEAD_LETTERED`
+
+- `UNKNOWN` means the artifact outcome or visibility is uncertain and requires
+  reconciliation.
+- `FAILED` means a known classifier failure was durably established.
+- `DEAD_LETTERED` means retry policy was exhausted; the artifact and source
+  remain intact for governed review.
+
+#### Classification child job
+
+`CREATED → STARTED → PROCESSING → SUCCEEDED`
+
+or:
+
+`STARTED/PROCESSING → UNKNOWN → RECOVERY_PENDING → SUCCEEDED | FAILED |
+DEFERRED | DEAD_LETTERED`
+
+The child job's `SUCCEEDED` means the classification artifact is durably
+available, not that any proposal was accepted or applied.
+
+The child job's status does not overwrite the parent mutation status. A child
+`UNKNOWN` adds a derived-recovery item and may make readiness
+`RECOVERY_REQUIRED`, but it does not turn a successfully closed parent response
+into an unknown source operation.
+
+#### Route command
+
+`READY → DISPATCHED → GOVERNANCE_PENDING → ACCEPTED → APPLYING → APPLIED`
+
+Alternative terminal or waiting outcomes are:
+
+`DEFERRED`, `REJECTED`, `REQUEST_RESOLUTION`, `CONFLICT`, `UNKNOWN`, and
+`DEAD_LETTERED`.
+
+`ACCEPTED` is a Governance decision. `APPLIED` is an authority commit. They
+must remain distinct.
+
+#### Authority commit
+
+`NOT_REQUESTED → REQUESTED → AUTHORIZED → COMMITTING → COMMITTED`
+
+or:
+
+`REJECTED`, `DEFERRED`, `CONFLICT`, or `UNKNOWN`.
+
+Only `COMMITTED` creates or changes the canonical authority record.
+
+### 6.8 Machine contract minimum
+
+Before implementation, the descriptive field inventories in this document must
+be converted into machine-readable schemas and parser contracts. At minimum:
+
+- all IDs, hashes, timestamps, statuses, owners, and references have explicit
+  string/object/array types;
+- required, optional, and nullable fields are distinct;
+- arrays define item types, uniqueness, and maximum length;
+- strings define maximum byte/character length and normalization;
+- confidence values are finite numbers in the inclusive range `0.0`–`1.0`;
+- timestamps use UTC ISO-8601 with one canonical serialization;
+- unknown fields are rejected or preserved according to an explicit versioned
+  policy;
+- proposal bodies use canonical sorted-key serialization before hashing;
+- context, diagnostics, source spans, and evidence lists have bounded sizes;
+- endpoint types and proposal owners use explicit allowlists;
+- validation failures use stable error codes rather than prompt text;
+- schema-version migration and backward-read behavior are defined.
+
+The target contract set is:
+
+`ClassificationEnvelope`, `ClassificationContextRequest`,
+`ClassificationContext`, `SourcePersistedHandoff`, `ClassificationChildJob`,
+`Proposal`, `RouteCommand`, `GovernanceDecision`, and `AuthorityCommitResult`.
+
+No implementation may accept a partially validated dictionary as an authority
+request. The parser must first produce a validated typed object, then the
+deterministic router may create a RouteCommand.
 
 ## 7. LLM prompt strategy
 
@@ -711,6 +942,38 @@ The retrieval service returns a `ClassificationContext` containing:
 - Temporal order alone cannot produce `CAUSES`.
 - A null Entity ID never matches another null Entity ID.
 - Ambiguous Entity resolution blocks State or Relationship authority writes.
+
+#### Mechanical anti-circularity rule
+
+Every evidence reference must carry an evidence class:
+
+- `SOURCE_EXPERIENCE`;
+- `HUMAN_ASSERTION`;
+- `AUTHORITY_RECORD`;
+- `TOOL_OBSERVATION`;
+- `LLM_CLASSIFICATION`;
+- `DERIVED_PROPOSAL`;
+- `PROJECTION`.
+
+The deterministic validator builds a bounded provenance graph from the current
+proposal through its evidence references. A proposal may be routed only when
+at least one required support path reaches an allowed source or authority class
+without passing through another unsupported `LLM_CLASSIFICATION` or
+`DERIVED_PROPOSAL` node. A path composed only of LLM classifications,
+proposals, or projections is not independent support.
+
+The validator must also:
+
+- reject self-reference and repeated node cycles;
+- distinguish direct source evidence from transitive derived evidence;
+- preserve the complete bounded path used for the decision;
+- return `REQUEST_RESOLUTION` when the policy requires independent evidence but
+  none is available;
+- never treat a projection or confidence score as independent support.
+
+The first implementation must use a bounded graph walk with a configured
+maximum depth and explicit allowlists for support classes. It must not rely on
+the LLM to identify circularity.
 
 ### 8.4 Context snapshot integrity
 
@@ -896,23 +1159,23 @@ Classification completion cannot make `CLOSEOUT_PENDING` become success.
 ### 10.2 `mutation_worker.py` contract
 
 After source persistence yields an authoritative `experience_id`, the worker
-may schedule or run an additive classification step.
+must schedule a separate additive classification child job. The parent mutation
+worker must never make an external LLM call synchronously as part of recording.
 
 Conceptually:
 
 1. claim parent mutation job;
 2. execute source recording;
 3. obtain `experience_id`;
-4. enqueue or execute a derived Memory Intelligence job;
-5. build existing representations/encoded units independently;
-6. update parent mutation result without changing source authority.
+4. durably commit or attach the `source_persisted` handoff;
+5. enqueue or recover exactly one derived Memory Intelligence child job;
+6. build existing representations/encoded units independently;
+7. update parent mutation result without changing source authority.
 
-The initial design should prefer a separate classification job rather than
-making the worker call an external LLM synchronously. The parent job result may
-report:
+The parent job result may report:
 
 - `classification_status: PENDING`;
-- `classification_status: COMPLETED`;
+- `classification_status: CLASSIFIED`;
 - `classification_status: DEFERRED`;
 - `classification_status: FAILED`;
 - `classification_status: UNKNOWN`.
@@ -928,7 +1191,46 @@ The parent response job remains:
 
 The classification state is additive and must not override these statuses.
 
-### 10.3 Derived-work recovery
+### 10.2A Mandatory asynchronous rule
+
+Recording-time classification is always a child job. The parent mutation worker
+may write the source-persisted handoff and enqueue the child, but it must not:
+
+- call an LLM;
+- perform broad Recall;
+- wait for classification completion;
+- apply a State/Relationship/Event Relation proposal;
+- change the parent closeout result because classification is delayed.
+
+The only synchronous interpretation path is the separate, read-only pre-draft
+New Expansion operation described in Stage 4A.
+
+### 10.3 SourceExperienceReader join contract
+
+`SourceExperienceReader` must join the Experience store, parent mutation job,
+source-persisted handoff, and lineage records. It must return a typed result
+with:
+
+- `source_status`: `FOUND`, `NOT_FOUND`, `CONFLICT`, or `UNKNOWN`;
+- Experience content and source hash, only when authoritative;
+- parent operation and receipt identity;
+- exact lineage;
+- source role and response target;
+- handoff identity and status;
+- classification eligibility;
+- disagreement diagnostics.
+
+The reader must distinguish three hashes:
+
+- source content hash;
+- source request/fingerprint hash used by admission;
+- classifier input/context hash.
+
+They must not be substituted for one another. If the Experience, parent job,
+handoff, or lineage records disagree, return `CONFLICT` or `UNKNOWN`; do not
+silently choose the newest projection.
+
+### 10.4 Derived-work recovery
 
 If a worker dies:
 
@@ -948,7 +1250,7 @@ Step2D owns parent mutation/source reconciliation. Memory Intelligence owns its
 own derived-job recovery. Neither subsystem may silently perform the other's
 authority work.
 
-### 10.4 Hook integration
+### 10.5 Hook integration
 
 The response hook should remain:
 
@@ -1088,14 +1390,23 @@ reuse the same ID even when the parent worker or Dispatcher attempt changes.
 
 ### Authority outcomes
 
-Every authority proposal resolves to:
+Every authority proposal resolves through two distinct decisions:
 
-- `ACCEPTED` and committed;
-- `REJECTED` with reason;
-- `DEFERRED` with review condition;
-- `REQUEST_RESOLUTION` with missing evidence;
-- `CONFLICT` because authority version changed;
-- `UNKNOWN` if commit outcome cannot be established.
+1. **Governance decision:**
+
+   - `ACCEPTED`;
+   - `REJECTED` with reason;
+   - `DEFERRED` with review condition;
+   - `REQUEST_RESOLUTION` with missing evidence.
+
+2. **Authority commit outcome:**
+
+   - `COMMITTED`;
+   - `CONFLICT` because authority version changed;
+   - `UNKNOWN` if commit outcome cannot be established;
+   - `FAILED` when an authoritative commit failure is established.
+
+`ACCEPTED` is never shorthand for `COMMITTED`.
 
 An authority result must never be inferred from LLM output, process exit code, or
 local file presence alone.
@@ -1128,6 +1439,26 @@ Record these metrics independently:
 
 Every classification and proposal diagnostic should include IDs and bounded
 reasons, not unrestricted raw user or response content.
+
+## 14A. LLM provider and protected-data contract
+
+Before any non-test LLM call is enabled, the implementation must record a
+provider/runtime policy covering:
+
+- approved provider and model identifier;
+- region/data-residency requirements;
+- whether prompts and outputs are retained by the provider;
+- protected-content redaction or exclusion rules;
+- maximum source size and context-token budget;
+- request timeout and bounded retry policy;
+- structured-output/JSON parser behavior;
+- deterministic settings required for replay;
+- provider failure versus malformed-output classification;
+- bounded audit metadata without unrestricted prompt logging.
+
+Secrets, credentials, access tokens, and protected content must not be written
+to classification diagnostics or sent to an unapproved provider. A provider
+failure is not a source failure and must not invalidate a persisted Experience.
 
 ## 15. Testing strategy
 
@@ -1238,6 +1569,9 @@ Deliver:
 Memory Intelligence remains read-only design work. No production classifier is
 enabled.
 
+**Evidence required:** clean test report, live-data census, operation/recovery
+classification, and independent validation signoff.
+
 ### Milestone B — Complete Operational Design
 
 **Purpose:** freeze Dispatcher, RecoveryResponse, Step2D, outbox, and derived
@@ -1253,12 +1587,20 @@ Define:
 - readiness impact;
 - exact ownership between Dispatcher, worker, Step2D, and intelligence.
 
+**Evidence required:** approved transition tables, ownership matrix, durable
+source-persisted handoff contract, derived-job contract, failure matrix, named
+approvers, and rollback conditions.
+
 ### Milestone C — Reliable Execution
 
 **Purpose:** implement the serialized Dispatcher and RecoveryResponse.
 
 Memory Intelligence may have pure classifier code and test fixtures, but should
 not depend on unproven parallel worker behavior. Start with `max_workers=1`.
+
+**Evidence required:** implementation diff, focused tests, clean-room lifecycle,
+and an independent review request. No production LLM or authority routing is
+enabled by this milestone alone.
 
 ### Milestone D — Recovery Correctness
 
@@ -1276,6 +1618,9 @@ Required cases include:
 - Step2D source conflict;
 - classification dead-letter/manual review.
 
+**Evidence required:** failure-injection results with operation IDs, source
+IDs, recovery IDs, before/after versions, and readiness outcomes.
+
 ### Milestone E — Controlled Concurrency
 
 **Purpose:** optional performance expansion.
@@ -1290,6 +1635,9 @@ Only after D and the F authority gate:
 - feature-flag and measure rollback.
 
 Concurrency is not required to build the pure classifier.
+
+**Evidence required:** measured baseline, load results, conflict-scope tests,
+rollback demonstration, and explicit rollout approval.
 
 ### Milestone F — Canonical State, Relationship, and History Integration
 
@@ -1312,6 +1660,10 @@ Required before production authority writes:
 This is the first milestone where the Memory Intelligence layer may produce
 production proposal records for authority processing.
 
+**Evidence required:** authority decisions, schema compatibility report, live
+State/Relationship/Event Relation replay, proposal acceptance/rejection matrix,
+and Owner/Architecture/Validator signoff.
+
 ### Milestone G — Retrieval and Recall Closure
 
 **Purpose:** improve the old-context reconciliation path.
@@ -1329,6 +1681,10 @@ Complete:
 Then consolidate bounded Recall behind the `ClassificationContextReader` and
 `ContextExpansion` contracts.
 
+**Evidence required:** active/archive query corpus, provenance explanations,
+negative/adversarial queries, malformed-record results, and no false-positive
+acceptance of superseded or unprovenanced evidence.
+
 ### Milestone H — ContextBootstrap and Attention Integration
 
 **Purpose:** use governed State, Relationships, History, Recall, and Direction
@@ -1337,6 +1693,9 @@ to build current context without granting authority to projections.
 Memory Intelligence may emit context-expansion and attention-review signals.
 Attention and ContextBootstrap independently decide activation, focus, and
 bounded presentation.
+
+**Evidence required:** read-only snapshot tests, attention transition tests,
+bounded-context tests, and proof that projections cannot authorize writes.
 
 ### Milestone I — Skills and Closed Learning Loop
 
@@ -1350,6 +1709,33 @@ Memory Intelligence may emit:
 - material Skill-outcome evidence.
 
 It must not automatically create, invoke, promote, attribute, or evolve Skills.
+
+**Evidence required:** candidate/Skill lineage tests, outcome attribution tests,
+coordination tests, provenance review, and explicit Skill Governance approval.
+
+## 16A. Auditable milestone gate record
+
+Every A–I milestone must produce one immutable `MilestoneGateRecord` before it
+can be marked complete. The record contains:
+
+- `gate_id`;
+- milestone and scope;
+- source commit/branch or design revision;
+- accountable owner;
+- Architecture, Builder, Validator, and Owner decisions where applicable;
+- `specified`, `implemented`, `tested`, `observed`, and `reviewed` statuses;
+- required commands and environment;
+- pass/fail criteria;
+- evidence artifact IDs and hashes;
+- unresolved risks;
+- rollback/disable condition;
+- dependency gate IDs;
+- decision timestamp;
+- final state: `PASSED`, `FAILED`, `BLOCKED`, or `REOPENED`.
+
+The Project Manager owns sequencing, but cannot mark a gate `PASSED` without
+the required evidence and independent validation. A milestone with missing
+evidence remains `BLOCKED` or `REOPENED`.
 
 ## 17. Rollout stages
 
